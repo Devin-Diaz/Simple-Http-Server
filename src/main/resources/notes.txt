@@ -1,0 +1,23 @@
+HTTP Server: Plain old computer that needs to be connected to a network.
+
+That server then listens for requests from clients and responds to them.
+For encrypted communication, the server typically uses port 443.
+For unencrypted communication, the server typically uses port 80.
+
+When a client wants to communicate with a server, it sends a request to the server's IP address on the appropriate port,
+thus establishing a connection. The server processes the request and typically looks through a folder of files
+known as the "web root" or "document root" to find the requested file. If the file is found, the server sends it back
+to the client.The client then receives the file and displays it in a web browser or processes it as needed.
+
+What is needed:
+    Be able to read configuration files. The server will listen to requests on a port, we need to be able to build
+    how those files will be written and read.
+
+    Open a socket on a port and listen for requests. This will be the main loop of the server.
+
+    Be able to parse requests. The server will need to understand the requests it receives from clients.
+
+    Open and read files from web root directory. The server will need to access files to respond to client requests.
+
+    Write responses back to the client. The server will need to send back the requested files or appropriate error messages.
+
