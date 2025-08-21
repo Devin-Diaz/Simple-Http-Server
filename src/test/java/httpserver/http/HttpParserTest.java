@@ -1,7 +1,6 @@
 package httpserver.http;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -23,11 +22,57 @@ class HttpParserTest {
     }
 
     @Test
-    void parseHttpRequest() throws IOException {
-        httpParser.parseHttpRequest(generateValidTestCase());
+    void parseHttpRequest_HappyPath() throws IOException {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parseHttpRequest(generateValidTestCase_GET());
+        } catch (HttpParsingException e) {
+            fail(e);
+        }
+        assertEquals(HttpMethod.GET, request.getMethod());
     }
 
-    private InputStream generateValidTestCase() {
+    @Test
+    void parseHttpRequest_BadPath1() throws IOException {
+        try {
+            HttpRequest request =  httpParser.parseHttpRequest(generateBadTestCase_InvalidGET());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCodes.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
+        }
+    }
+
+    @Test
+    void parseHttpRequest_BadPath2() throws IOException {
+        try {
+            HttpRequest request =  httpParser.parseHttpRequest(generateBadTestCase_InvalidMethodName());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCodes.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
+        }
+    }
+
+    @Test
+    void parseHttpRequest_BadPath3() throws IOException {
+        try {
+            HttpRequest request =  httpParser.parseHttpRequest(generateBadTestCase_InvalidNumItemsInRequestLine());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCodes.CLIENT_ERROR_400_BAD_REQUEST, e.getErrorCode());
+        }
+    }
+
+    @Test
+    void parseHttpRequest_BadPath4() throws IOException {
+        try {
+            HttpRequest request =  httpParser.parseHttpRequest(generateBadTestCase_EmptyRequestLine());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCodes.CLIENT_ERROR_400_BAD_REQUEST, e.getErrorCode());
+        }
+    }
+
+    private InputStream generateValidTestCase_GET() {
         String rawData = "GET / HTTP/1.1\r\n" +
                 "Host: localhost:8080\r\n" +
                 "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0\r\n" +
@@ -46,5 +91,44 @@ class HttpParserTest {
         return inputStream;
     }
 
+    private InputStream generateBadTestCase_InvalidGET() {
+        String rawData = "Get / HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0\r\n" +
+                "Priority: u=0, i\r\n" +
+                "\r\n";
+        InputStream inputStream = new ByteArrayInputStream(rawData.getBytes(StandardCharsets.US_ASCII));
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase_InvalidMethodName() {
+        String rawData = "GETTTTTTT / HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0\r\n" +
+                "Priority: u=0, i\r\n" +
+                "\r\n";
+        InputStream inputStream = new ByteArrayInputStream(rawData.getBytes(StandardCharsets.US_ASCII));
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase_InvalidNumItemsInRequestLine() {
+        String rawData = "GET / INVALID_FIELD HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0\r\n" +
+                "Priority: u=0, i\r\n" +
+                "\r\n";
+        InputStream inputStream = new ByteArrayInputStream(rawData.getBytes(StandardCharsets.US_ASCII));
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase_EmptyRequestLine() {
+        String rawData = "\r\n" +
+                "Host: localhost:8080\r\n" +
+                "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0\r\n" +
+                "Priority: u=0, i\r\n" +
+                "\r\n";
+        InputStream inputStream = new ByteArrayInputStream(rawData.getBytes(StandardCharsets.US_ASCII));
+        return inputStream;
+    }
 
 }
